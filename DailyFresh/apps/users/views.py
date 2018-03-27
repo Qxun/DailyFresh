@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from django.core.mail import send_mail
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
@@ -167,10 +166,5 @@ class SiteView(View):
     def post(self, request):
         context = {}
         pass
+    
 
-
-=======
-from django.shortcuts import render
-
-# Create your views here.
->>>>>>> 665b20e7f457edc4d588b7fe3b5281f4e73363e5
