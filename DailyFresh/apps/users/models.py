@@ -14,6 +14,14 @@ class User(AbstractUser, BaseModel):
         db_table = "df_users"
 
 
+class AreaInfo(models.Model):
+    title = models.CharField(max_length=20)
+    aParent = models.ForeignKey('self', null=True, blank=True)
+
+    class Meta:
+        db_table = 'df_area'
+
+
 class Address(BaseModel):
     """地址"""
     user = models.ForeignKey(User, verbose_name="所属用户")
@@ -21,6 +29,10 @@ class Address(BaseModel):
     receiver_mobile = models.CharField(max_length=11, verbose_name="联系电话")
     detail_addr = models.CharField(max_length=256, verbose_name="详细地址")
     zip_code = models.CharField(max_length=6, verbose_name="邮政编码")
+    province = models.ForeignKey(AreaInfo, related_name='province', null=True)
+    city = models.ForeignKey(AreaInfo, related_name='city', null=True)
+    district = models.ForeignKey(AreaInfo, related_name='district', null=True)
+    isDefault = models.BooleanField(default=False)
 
     class Meta:
         db_table = "df_address"
