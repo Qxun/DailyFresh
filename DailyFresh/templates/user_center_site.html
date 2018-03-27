@@ -1,48 +1,108 @@
 {% extends 'base_user.html' %}
 
-{% block head %}{% endblock head %}
+{% block head %}
+    <script>
+        $(function () {
+            $.get('/users/area', function (data) {
+                var list = data.list;
+                var province = $('#provice');
+                $.each(list, function (i, n) {
+                    province.append('<option value="' + n.id + '">' + n.title + '</option>')
+                });
+            });
+
+            $('#provice').change(function () {
+                $.get('/users/area', {'pid': $(this).val()}, function (data) {
+                    var list = data.list;
+                    var city = $('#city').empty().append('<option value="0">请选择</option>');
+                    $('#district').empty().append('<option value="0">请选择</option>');
+                    $.each(list, function (i, n) {
+                        city.append('<option value="' + n.id + '">' + n.title + '</option>');
+                    });
+                });
+            });
+            $('#city').change(function () {
+                $.get('/users/area', {"pid": $(this).val()}, function (data) {
+                    var list = data.list;
+                    var district = $('#district').empty().append('<option value="0">请选择</option>');
+                    $.each(list, function (i, n) {
+                        district.append('<option value="' + n.id + '">' + n.title + '</option>');
+                    })
+                })
+            });
+        })
+    </script>
+{% endblock head %}
 
 {% block body2 %}
-	<div class="main_con clearfix">
-		<div class="left_menu_con clearfix">
-			<h3>用户中心</h3>
-			<ul>
-				<li><a href="user_center_info.html">· 个人信息</a></li>
-				<li><a href="user_center_order.html">· 全部订单</a></li>
-				<li><a href="user_center_site.html" class="active">· 收货地址</a></li>
-			</ul>
-		</div>
-		<div class="right_content clearfix">
-				<h3 class="common_title2">收货地址</h3>
-				<div class="site_con">
-					<dl>
-						<dt>当前地址：</dt>
-						<dd>北京市 海淀区 东北旺西路8号中关村软件园 （李思 收） 182****7528</dd>
-					</dl>					
-				</div>
-				<h3 class="common_title2">编辑地址</h3>
-				<div class="site_con">
-					<form>
-						<div class="form_group">
-							<label>收件人：</label>
-							<input type="text" name="">
-						</div>
-						<div class="form_group form_group2">
-							<label>详细地址：</label>
-							<textarea class="site_area"></textarea>
-						</div>
-						<div class="form_group">
-							<label>邮编：</label>
-							<input type="text" name="">
-						</div>
-						<div class="form_group">
-							<label>手机：</label>
-							<input type="text" name="">
-						</div>
+    <div class="main_con clearfix">
+        <div class="left_menu_con clearfix">
+            <h3>用户中心</h3>
+            <ul>
+                <li><a href="/users/info">· 个人信息</a></li>
+                <li><a href="/users/order">· 全部订单</a></li>
+                <li><a href="#" class="active">· 收货地址</a></li>
+            </ul>
+        </div>
+        <div class="right_content clearfix">
+            <h3 class="common_title2">收货地址</h3>
+            <div class="site_con">
+                <dl>
+                    <dt>当前地址：</dt>
+                    {% for addr in add_list %}
+                        <dd>
+                            {% if addr.isDefault %}
+                            [默认]
+                            {% endif %}
+                            {{ addr.province.title }} {{ addr.city.title }} {{ addr.district.title }} {{ addr.detail_addr }} （{{ addr.receiver_name }} 收） {{ addr.receiver_mobile }}
+                        </dd>
+                    {% empty %}
+                        <dd>您还未添加收货地址</dd>
+                    {% endfor %}
+                </dl>
+            </div>
+            <h3 class="common_title2">编辑地址</h3>
+            <div class="site_con">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form_group">
+                        <label>收件人：</label>
+                        <input type="text" name="uname">
+                    </div>
+                    <div class="form_group form_group3">
+                        <label>选择地址：</label>
 
-						<input type="submit" name="" value="提交" class="info_submit">
-					</form>
-				</div>
-		</div>
-	</div>
+                        <select name="provice" id="provice">
+                            <option value="0">请选择</option>
+                        </select>
+                        <select name="city" id="city">
+                            <option value="0">请选择</option>
+                        </select>
+                        <select name="district" id="district">
+                            <option value="0">请选择</option>
+                        </select>
+                    </div>
+                    <div class="form_group form_group2">
+                        <label>详细地址：</label>
+                        <textarea class="site_area" name="addr"></textarea>
+                    </div>
+                    <div class="form_group">
+                        <label>邮编：</label>
+                        <input type="text" name="code">
+                    </div>
+                    <div class="form_group">
+                        <label>手机：</label>
+                        <input type="text" name="phone">
+                    </div>
+
+                    <div class="form_group">
+                        <label>默认：</label>
+                        <input type="checkbox" name="default" value="1">
+                    </div>
+
+                    <input type="submit" value="提交" class="info_submit">
+                </form>
+            </div>
+        </div>
+    </div>
 {% endblock body2 %}
