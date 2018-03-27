@@ -166,5 +166,5 @@ class SiteView(View):
     def post(self, request):
         context = {}
         pass
-    
+
 
