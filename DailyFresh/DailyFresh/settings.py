@@ -87,7 +87,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'dailyfresh',
+<<<<<<< HEAD
         'HOST': 'localhost',  # MySQL数据库地址
+=======
+        'HOST': 'localhost', # MySQL数据库地址
+>>>>>>> 665b20e7f457edc4d588b7fe3b5281f4e73363e5
         'PORT': '3306',
         'USER': 'root',
         'PASSWORD': 'mysql',
@@ -113,6 +117,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+<<<<<<< HEAD
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
@@ -144,3 +149,6 @@ CACHES = {
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
+=======
+AUTH_USER_MODEL = 'users.User'
+>>>>>>> 665b20e7f457edc4d588b7fe3b5281f4e73363e5
