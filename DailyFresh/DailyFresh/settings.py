@@ -146,3 +146,17 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 
 LOGIN_URL = '/users/login'
+
+#指定上传文件时，使用哪个类进行保存
+DEFAULT_FILE_STORAGE = 'utils.storage.FdfsStorage'
+#指定FastDFS客户端的配置文件
+FDFS_CLIENT=os.path.join(BASE_DIR,'utils/fdfs_client.conf')
+FDFS_SERVER='http://127.0.0.1:8888/'
+
+
+#配置tinymce的样式
+TINYMCE_DEFAULT_CONFIG = {
+  'theme': 'advanced', # 丰富样式
+  'width': 600,
+  'height': 400,
+}
