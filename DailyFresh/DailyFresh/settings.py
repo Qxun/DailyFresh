@@ -28,7 +28,7 @@ SECRET_KEY = '*s1@53jf-767=_e$@%c12sw510su#nx&py1c%vsx&9z=i&r%5j'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*',]
 
 
 # Application definition
@@ -160,3 +160,5 @@ TINYMCE_DEFAULT_CONFIG = {
   'width': 600,
   'height': 400,
 }
+
+GENERATE_HTML = os.path.join(BASE_DIR, 'static/html')
