@@ -1,7 +1,6 @@
 {% extends 'base_goods.html' %}
 
 {% block body2 %}
-
     <div class="navbar_con">
         <div class="navbar clearfix">
             <div class="subnav_con fl">
@@ -9,8 +8,7 @@
                 <span></span>
                 <ul class="subnav">
                     {% for category in category_list %}
-                        <li><a href="/list{{ category.id }}" class="{{ category.logo }}">{{ category.name }}</a>
-                        </li>
+                        <li><a href="/list{{ category.id }}" class="{{ category.logo }}">{{ category.name }}</a></li>
                     {% endfor %}
                 </ul>
             </div>
@@ -51,11 +49,11 @@
                     {% endif %}
                 {% endfor %}
             </div>
-
-
             <div class="goods_num clearfix">
                 <div class="num_name fl">数 量：</div>
                 <div class="num_add fl">
+
+                    <input type="hidden" id="sku_id" value="{{ sku.id }}">
                     <input type="text" class="num_show fl" value="1">
                     <a href="javascript:;" class="add fr">+</a>
                     <a href="javascript:;" class="minus fr">-</a>
@@ -91,47 +89,50 @@
                 <li>评论</li>
             </ul>
 
-            <div class="tab_content">
-                {{ sku.goods.desc|safe }}
-            </div>
+            <div class="tab_content">{{ sku.goods.desc|safe }}</div>
 
         </div>
     </div>
 
-{% endblock body2 %}
-
-{% block body_bottom %}
     <div class="add_jump"></div>
 
-    <script type="text/javascript" src="js/jquery-1.12.2.js"></script>
     <script type="text/javascript">
-
+        //获得“加入购物车”按钮的xy坐标
         var $add_x = $('#add_cart').offset().top;
         var $add_y = $('#add_cart').offset().left;
-
+        //获取“我的购物车”数量位置的xy坐标
         var $to_x = $('#show_count').offset().top;
         var $to_y = $('#show_count').offset().left;
 
-        $(".add_jump").css({'left': $add_y + 80, 'top': $add_x + 10, 'display': 'block'})
         $('#add_cart').click(function () {
-            $(".add_jump").stop().animate({
-                    'left': $to_y + 7,
-                    'top': $to_x + 7
-                },
-                "fast", function () {
-                    $(".add_jump").fadeOut('fast', function () {
-                        $('#show_count').html(2);
-                    });
+            $.post('/cart/add', {
+                'sku_id': $('#sku_id').val(),//商品编号
+                'count': $('.num_show').val(),//商品数量
+                'csrfmiddlewaretoken': '{{ csrf_token }}',//通过post请求的csrf验证
+            }, function (data) {
+                if (data.status == 1) {
+                    $(".add_jump").css({'left': $add_y + 80, 'top': $add_x + 10, 'display': 'block'});
+                    $(".add_jump").stop().animate({
+                            'left': $to_y + 7,
+                            'top': $to_x + 7
+                        },
+                        "fast", function () {
+                            $(".add_jump").fadeOut('fast', function () {
+                                $('#show_count').html(data.total_count);
+                            });
+                        });
+                }
+            });
 
-                });
+
         });
 
         $('.num_show').blur(function () {
-            // 失去焦点时，获得数量和单价
+            //当数量失去焦点时，计算总价
             var num = parseInt($(this).val());
             var price = parseFloat($('.show_pirze>em').text());
-            // 数据有效性验证
-            if (isNaN(num)) {
+            //验证num的有效性
+            if (isNaN(num)) {//'abc'==>parseInt('abc')==>NaN not a number
                 num = 1;
             }
             if (num < 1) {
@@ -141,19 +142,21 @@
                 num = 5;
             }
             $(this).val(num);
-            var totle = num * price;
-            $('.total>em').text(totle.toFixed(2) + '元');
+            //计算总价
+            var total = num * price;
+            $('.total>em').text(total.toFixed(2) + '元');
         });
+        //+1
         $('.add').click(function () {
             var num = parseInt($('.num_show').val());
-            num += 1;
-            $('.num_show').val(num).blur();
-        })
+            num++;
+            $('.num_show').val(num).blur();//blur()模拟触发这个事件
+        });
+        //-1
         $('.minus').click(function () {
             var num = parseInt($('.num_show').val());
-            num-=1;
-            $('.num_show').val(num).blur();
-        })
-
+            num--;
+            $('.num_show').val(num).blur();//blur()模拟触发这个事件
+        });
     </script>
-{% endblock body_bottom %}
+{% endblock body2 %}

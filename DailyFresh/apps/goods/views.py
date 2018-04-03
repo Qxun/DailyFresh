@@ -1,3 +1,4 @@
+import json
 import os
 from django.conf import settings
 from django.http import Http404
@@ -37,6 +38,8 @@ def index(request):
         }
 
         cache.set('index', context, 3600)
+
+    context['total_count']=get_cart_total(request)
 
     response = render(request, 'index.html', context)
     # html = response.content.decode()
@@ -89,6 +92,9 @@ def list(request, category_id):
         'page_list': page_list,
 
     }
+
+    context['total_count']=get_cart_total(request)
+
     return render(request, 'list.html', context)
 
 
@@ -103,13 +109,13 @@ def detail(request, sku_id):
     new_list = sku.category.goodssku_set.all().order_by('-id')[0:2]
 
     other_list = sku.goods.goodssku_set.all()
-
-    redis_client = get_redis_connection()
-    key = 'history%d' % request.user.id
-    redis_client.lrem(key, 0, sku_id)
-    redis_client.lpush(key, sku_id)
-    if redis_client.llen(key) > 5:
-        redis_client.rpop(key)
+    if request.user.is_authenticated():
+        redis_client = get_redis_connection()
+        key = 'history%d' % request.user.id
+        redis_client.lrem(key, 0, sku_id)
+        redis_client.lpush(key, sku_id)
+        if redis_client.llen(key) > 5:
+            redis_client.rpop(key)
 
     context = {
         'title': '商品详情',
@@ -119,10 +125,15 @@ def detail(request, sku_id):
         'other_list': other_list,
 
     }
+    context['total_count']=get_cart_total(request)
 
     return render(request, 'detail.html', context)
 
 class MySearchView(SearchView):
+    def get(self, request, *args, **kwargs):
+        self.cart_request=request
+        return super().get(request, *args, **kwargs)
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['title']='搜索结果'
@@ -132,5 +143,27 @@ class MySearchView(SearchView):
         total_page=context['paginator'].num_pages
         pindex=context['page_obj'].number
         context['page_list']=get_page_list(total_page,pindex)
+        context['total_count'] = get_cart_total(self.cart_request)
 
         return context
+
+
+def get_cart_total(request):
+    '''获取购物车中商品的总数量'''
+    total_count = 0
+    # 判断用户是否登录
+    if request.user.is_authenticated():
+        # 如果登录则从redis中读取
+        redis_client = get_redis_connection()
+        for v in redis_client.hvals('cart%d' % request.user.id):
+            # total_count += int(v)
+            total_count += 1
+    else:
+        # 如果未登录则从cookie中读取
+        cart_str = request.COOKIES.get('cart')
+        if cart_str:
+            cart_dict = json.loads(cart_str)
+            for k, v in cart_dict.items():
+                total_count += v
+
+    return total_count

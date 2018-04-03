@@ -1,3 +1,5 @@
+import json
+
 from django.core.mail import send_mail
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
@@ -141,6 +143,31 @@ class LoginView(View):
             response.delete_cookie('uname')
         else:
             response.set_cookie('uname', uname, expires=60 * 60 * 24 * 7)
+
+        # 将cookies中的购物车信息转存入redis中
+        # 在redis中存储的结构为：商品编号是属性，数量是属性值
+        # 1.读取cookie中的购物车信息，转成字典
+        cart_str = request.COOKIES.get('cart')
+        if cart_str:
+            key = 'cart%d' % request.user.id
+            redis_client = get_redis_connection()
+            cart_dict = json.loads(cart_str)
+            # 2.遍历字典
+            for k, v in cart_dict.items():
+                # 3.判断redis中是否已经存在这个商品
+                if redis_client.hexists(key, k):
+                    # 3.1如果有则数量相加
+                    count1 = int(redis_client.hget(key, k))
+                    count2 = v
+                    count0 = count1 + count2
+                    if count0 > 5:
+                        count0 = 5
+                    redis_client.hset(key, k, count0)
+                else:
+                    # 3.2如果无则添加
+                    redis_client.hset(key, k, v)
+            # 已经成功转存到redis，删除cookie中的信息
+            response.delete_cookie('cart')
 
         return response
 
